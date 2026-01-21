@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Clima</title>    
+    </head>
+    <body>
+        <h1>Clima</h1>
+
+        <form method="POST">
+            <input type="text" name="city" placeholder="ciudad" required>
+            <button type="submit">Consultar</button>
+        </form>
+
+        {% if error%}
+        <p style="color:red;">{{ error}}</p>
+        {% endif %}
+
+        {% if weather %}
+        <h2>{{ weather.ciudad}}, {{weather.pais}}</h2>
+        <p>Temperatura: {{ weather.temperatura|round(1)}} °C</p>
+        <p>Clima: {{ weather.descripcion}}</p>
+        <img scr="http://openweathermap.org/img/wn/{{ weather.icono}}.png">
+        {% endif %}
+    </body>
+</html>
