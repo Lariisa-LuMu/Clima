@@ -6,5 +6,5 @@ build:
 ports: 
  -"5000:5000"
 enviroment: 
- -OPENWEATHER_API_KEY=A
+ -OPENWEATHER_API_KEY="04648220501eee68598ee9bd40c40c47b45"
 

@@ -4,8 +4,48 @@ import requests
 
 app = Flask(__name__)
 
-# API Key - configurar en docker-compose o .env
-API_KEY = os.getenv('OPENWEATHER_API_KEY', '')
+# API Key
+API_KEY = os.getenv('OPENWEATHER_API_KEY', 'tu_api_key_aqui')
+
+def get_weather(city):
+    """Obtiene el clima de una ciudad"""
+    if not API_KEY or API_KEY == 'tu_api_key_aqui':
+        return {'error': 'Configura tu API Key en OPENWEATHER_API_KEY'}
+    
+    try:
+        url = f"http://api.openweathermap.org/data/2.5/weather"
+        params = {
+            'q': city,
+            'appid': API_KEY,
+            'units': 'metric',
+            'lang': 'es'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+        
+        if data.get('cod') == 200:
+            return {
+                'ciudad': data['name'],
+                'pais': data['sys']['country'],
+                'temperatura': round(data['main']['temp'], 1),
+                'sensacion': round(data['main']['feels_like'], 1),
+                'minima': round(data['main']['temp_min'], 1),
+                'maxima': round(data['main']['temp_max'], 1),
+                'humedad': data['main']['humidity'],
+                'viento': data['wind']['speed'],
+                'descripcion': data['weather'][0]['description'].capitalize(),
+                'icono': data['weather'][0]['icon']
+            }
+        else:
+            return {'error': data.get('message', 'Ciudad no encontrada')}
+            
+    except requests.exceptions.Timeout:
+        return {'error': 'Tiempo de espera agotado'}
+    except requests.exceptions.ConnectionError:
+        return {'error': 'Error de conexión'}
+    except Exception as e:
+        return {'error': f'Error: {str(e)}'}
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -15,42 +55,19 @@ def index():
     
     if request.method == 'POST':
         city = request.form.get('city', '').strip()
-        
         if city:
-            if not API_KEY:
-                error = "ERROR: Configurar OPENWEATHER_API_KEY"
+            result = get_weather(city)
+            if 'error' in result:
+                error = result['error']
             else:
-                # Llamar a la API
-                url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=es"
-                
-                try:
-                    response = requests.get(url)
-                    data = response.json()
-                    
-                    if data.get('cod') == 200:
-                        weather = {
-                            'ciudad': data['name'],
-                            'pais': data['sys']['country'],
-                            'temperatura': data['main']['temp'],
-                            'sensacion': data['main']['feels_like'],
-                            'minima': data['main']['temp_min'],
-                            'maxima': data['main']['temp_max'],
-                            'humedad': data['main']['humidity'],
-                            'viento': data['wind']['speed'],
-                            'descripcion': data['weather'][0]['description'],
-                            'icono': data['weather'][0]['icon']
-                        }
-                    else:
-                        error = f"Error: {data.get('message', 'Ciudad no encontrada')}"
-                        
-                except Exception as e:
-                    error = f"Error de conexión: {str(e)}"
+                weather = result
     
     return render_template('index.html', 
                          weather=weather, 
                          city=city, 
                          error=error,
-                         api_key_set=bool(API_KEY))
+                         api_key=API_KEY)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
