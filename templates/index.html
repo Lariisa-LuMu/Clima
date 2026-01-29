@@ -2,7 +2,24 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Clima</title>    
+        <title>Clima</title>  
+           <style>
+      body {
+    margin: 0;
+    min-height: 100vh;
+    background-image: url("{{ url_for('static', filename='bg_procesado.jpg') }}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    }
+        .container {
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            max-width: 500px;
+            margin: 50px auto;
+            border-radius: 10px;
+        }
+    </style>  
     </head>
     <body>
         <h1>Clima</h1>
